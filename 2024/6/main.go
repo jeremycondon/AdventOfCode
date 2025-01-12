@@ -3,6 +3,7 @@ package main
 import (
 	_ "embed"
 	"fmt"
+	"strconv"
 	"strings"
 )
 
@@ -12,18 +13,11 @@ var s string
 func buildLabMap() [][]string {
 	LabMap := make([][]string, 130)
 	lines := strings.Split(s, "\n")
-	// for y, value := range lines {
-	// 	LabMap[x] =
-	// }
 	for y, value := range lines {
-
 		for x := 0; x < 130; x++ {
-			// fmt.Printf("%d, %d\n", x, y)
 			LabMap[y] = append(LabMap[y], string(value[x]))
 		}
 	}
-	// fmt.Printf("len %d x %d\n", len(LabMap), len(LabMap[0]))
-
 	return LabMap
 }
 
@@ -58,8 +52,6 @@ func countLocations(LabMap [][]string) int {
 func walkMap(LabMap [][]string, recurse bool) int {
 	total := 0
 	total2 := 0
-	// var visited = map[string]int
-	// var m map[string]int
 	visited := make(map[string]int)
 	blocked := make(map[string]int)
 	newBLockerMap := buildLabMap()
@@ -67,46 +59,27 @@ func walkMap(LabMap [][]string, recurse bool) int {
 
 	currentDirection := "n"
 	y, x := findGuard(LabMap)
-	// sY, sX := findGuard(LabMap)
-	fmt.Printf("starting at: %d %d\n", x, y)
 	stepCounter := 0
 	pathKey := ""
 	for true {
-		LabMap[y][x] = currentDirection
-
-		if recurse && stepCounter > 1 {
+		if recurse && stepCounter != 0 {
 			LabMap2 := buildLabMap()
-			// LabMap2[sY][sX] = "."
 			LabMap2[y][x] = "#"
 			isLoop := walkMap(LabMap2, false)
 			if isLoop == -1 {
-				blocked[string(x)+","+string(y)] = 1
+				blocked[strconv.Itoa(x)+","+strconv.Itoa(y)] = 1
 				newBLockerMap[y][x] = "X"
 
 			} else {
 				// newBLockerMap[y][x] = "N"
 			}
-			// if stepCounter % 100 = 0 {
 			fmt.Printf("Step: %d\n", stepCounter)
-
-			// }
 		}
 
-		// have I been here?
-		pathKey = currentDirection + string(x) + "," + string(y)
-		v, ok := visited[pathKey]
-		if ok && !recurse && v > 5 {
-			// printMap(LabMap)
-			// panic("OK")
-			return -1
-		}
 		if (x == 0 && currentDirection == "w") ||
 			(y == 0 && currentDirection == "n") ||
 			(x == wall-1 && currentDirection == "e") ||
 			(y == wall-1 && currentDirection == "s") {
-			// fmt.Printf("MAP: %v\n", LabMap)
-			// LabMap[sY][sX] = "X"
-			// printMap(LabMap)
 			fmt.Printf("Step count: %d, total: %d\n", stepCounter, total)
 
 			if countLocations(newBLockerMap) > 1000 {
@@ -115,6 +88,7 @@ func walkMap(LabMap [][]string, recurse bool) int {
 			fmt.Printf("Part 2 total: %d\n", total2)
 			fmt.Printf("part 2 total: %d\n", len(blocked))
 			fmt.Printf("WELL? %d\n", countLocations(newBLockerMap))
+			// fmt.Printf("out %v\n", blocked)
 			// fmt.Printf("MAP BLOCKERS ")
 			// printMap(newBLockerMap)
 			// 1693 to low
@@ -123,19 +97,9 @@ func walkMap(LabMap [][]string, recurse bool) int {
 			// 1715 is wrong (eliminate line of site)
 			// 1839 to high
 			// 1682 WRONG AGAIN
+			// 1724 mmm...bad... // strings might be getting extra data...
 			return countLocations(LabMap)
 		}
-
-		// mark it
-		if visVal, ok := visited[pathKey]; ok {
-			visited[pathKey] = visVal + 1
-			// return -1
-		} else {
-			visited[pathKey] = 1
-			// return -1
-		}
-
-		// LabMap[x][y] = currentDirection
 
 		// move
 		switch currentDirection {
@@ -167,6 +131,18 @@ func walkMap(LabMap [][]string, recurse bool) int {
 			} else {
 				x = x - 1
 			}
+		}
+		// have I been here?
+		pathKey = currentDirection + string(x) + "," + string(y)
+		v, ok := visited[pathKey]
+		if ok && !recurse && v > 3 {
+			return -1
+		}
+		// mark it
+		if visVal, ok := visited[pathKey]; ok {
+			visited[pathKey] = visVal + 1
+		} else {
+			visited[pathKey] = 1
 		}
 
 		stepCounter++
